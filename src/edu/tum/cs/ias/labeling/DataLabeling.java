@@ -36,7 +36,7 @@ import edu.tum.cs.ias.labeling.labels.writers.PerFrameLabelsWriter;
 
 
 
-public class DatalabelingCogwatch extends PApplet {
+public class DataLabeling extends PApplet {
 
 	private static final long serialVersionUID = 6676699230725174424L;
 
@@ -47,7 +47,7 @@ public class DatalabelingCogwatch extends PApplet {
 	
 
 	GSMovie movie;
-	String movieFile = "/home/tenorth/work/doc/videos/kdenlive/untitled.ogv";
+	String movieFile = "untitled.ogv";
 	boolean playMovie = false;
 
 	int frame = 1;
@@ -571,6 +571,6 @@ public class DatalabelingCogwatch extends PApplet {
 	}
 
 	public static void main(String _args[]) {
-		PApplet.main(new String[] { edu.tum.cs.ias.labeling.DatalabelingCogwatch.class.getName() });
+		PApplet.main(new String[] { edu.tum.cs.ias.labeling.DataLabeling.class.getName() });
 	}
 }
