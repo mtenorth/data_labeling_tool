@@ -97,9 +97,9 @@ public class OwlActionAboxWriter implements LabelWriter {
 			String filename, int startframe, int endframe) throws FileNotFoundException 
 	{
 		// load OWL class mappings
-		try 
-		{
-			YamlConfigReader.loadOwlMapping("owl-mapping.yaml", this.class2owl, this.indiv2owl, this.prop2owl);
+		String main_dir = new File(filename).getParentFile().getParent(); 
+		try {
+			YamlConfigReader.loadOwlMapping(main_dir+ "/config/" + "owl-mapping.yaml", this.class2owl, this.indiv2owl, this.prop2owl);
 		} catch (IOException e) {}
 		
 		OWLOntology ontology = null;
@@ -173,25 +173,27 @@ public class OwlActionAboxWriter implements LabelWriter {
 				{
 					if(ind == 0)
 					{
-						className = this.class2owl.get(tokenizer.nextToken());
+						className = this.class2owl.get(tokenizer.nextToken().toLowerCase());
 					}
 					else if (ind == 1)
 					{	
 						object_name1 = tokenizer.nextToken();
 						
-						individualName1 = this.indiv2owl.get(object_name1);
+						individualName1 = this.indiv2owl.get(object_name1.toLowerCase());
 					}
 					else if (ind == 2)
 					{
-						propositionName = this.prop2owl.get(tokenizer.nextToken());
+						propositionName = this.prop2owl.get(tokenizer.nextToken().toLowerCase());
 					}
 					else if (ind == 3)
 					{	
 						object_name2 = tokenizer.nextToken();
 						
-						individualName2 = this.indiv2owl.get(object_name2);
+						individualName2 = this.indiv2owl.get(object_name2.toLowerCase());
+					} else {
+						// remove a token in any case to avoid infinite loops
+						tokenizer.nextToken();
 					}
-					
 					ind++;
 				}
 				
@@ -247,7 +249,7 @@ public class OwlActionAboxWriter implements LabelWriter {
 
 				prev_action_inst = action_inst;
 			}
-			File output = File.createTempFile("saved_owl_labels", "owl");
+			File output = new File(main_dir + "/annotations/labels.owl");
 			IRI documentIRI2 = IRI.create(output);
 			manager.saveOntology(ontology, new OWLXMLOntologyFormat(), documentIRI2);
 			manager.saveOntology(ontology, new SystemOutDocumentTarget());
@@ -256,43 +258,5 @@ public class OwlActionAboxWriter implements LabelWriter {
 		{
 			e.printStackTrace();
 		}
-
-				
-	}
-	
-	public static void main(String[] args) {
-		
-		// command-line version for reading and parsing labels.dat files and generating BLN files
-		
-		if(args.length < 1) 
-		{
-			System.err.println("Usage: batchBlnConversion labels1.dat [labels2.dat ... labels_n.dat]");
-		}
-		
-		for(String file : args)
-		{
-			try 
-			{
-				
-				//System.out.println("Converting " + file + "...");
-				
-				HashMap<Integer, String> action_labels = new HashMap<Integer, String>();
-				LabelsDatFileReader.loadLabelsDat(new File(file).getParent()+"/", action_labels);
-				
-				OwlActionAboxWriter writer = new OwlActionAboxWriter();
-				writer.writeToFile(action_labels, "labels.dat", 1, 322);
-
-				
-			} 
-			catch (IOException e) 
-			{
-				e.printStackTrace();
-			}
-			
-		}
-	}
-		
-
-	
-
+	}	
 }
