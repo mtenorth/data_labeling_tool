@@ -1,0 +1,7 @@
+.classpath
+.project
+preferences.txt
+bin
+application.linux
+application.windows
+application.macosx
