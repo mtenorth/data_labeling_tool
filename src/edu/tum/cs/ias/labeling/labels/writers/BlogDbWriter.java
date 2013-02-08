@@ -248,7 +248,7 @@ public class BlogDbWriter implements LabelWriter {
 				if(!id2action.containsKey(actionID)) {
 					id2action.put(actionID, currentAction);
 				}
-				if(class2owl.containsKey(action))
+				if(class2owl.containsKey(action.toLowerCase()))
 					currentAction.addAttribute("actionT", class2owl.get(action));
 				else throw(new IllegalArgumentException("No mapping found for " + action));
 				
@@ -260,10 +260,10 @@ public class BlogDbWriter implements LabelWriter {
 					String object1 = instr[1];
 					
 					String object1ID;
-					if(class2owl.containsKey(object1)) {
-						object1ID = class2owl.get(object1);
-					} else if(indiv2owl.containsKey(object1)) {
-						object1ID = indiv2owl.get(object1);
+					if(class2owl.containsKey(object1.toLowerCase())) {
+						object1ID = class2owl.get(object1.toLowerCase());
+					} else if(indiv2owl.containsKey(object1.toLowerCase())) {
+						object1ID = indiv2owl.get(object1.toLowerCase());
 					} else throw(new IllegalArgumentException("No mapping found for " + object1));
 					
 					
@@ -289,10 +289,10 @@ public class BlogDbWriter implements LabelWriter {
 					
 					
 					String object2ID;
-					if(class2owl.containsKey(object2))
-						object2ID = class2owl.get(object2);
-					else if(indiv2owl.containsKey(object2))
-						object2ID = indiv2owl.get(object2);
+					if(class2owl.containsKey(object2.toLowerCase()))
+						object2ID = class2owl.get(object2.toLowerCase());
+					else if(indiv2owl.containsKey(object2.toLowerCase()))
+						object2ID = indiv2owl.get(object2.toLowerCase());
 					else throw(new IllegalArgumentException("No mapping found for " + object2));
 					
 					currentObject2 = new Object(db, "object", object2ID);
@@ -300,7 +300,7 @@ public class BlogDbWriter implements LabelWriter {
 						id2object.put(object2ID, currentObject2);
 					}
 
-					currentAction.addAttribute(prop2owl.get(prep), object2ID);
+					currentAction.addAttribute(prop2owl.get(prep.toLowerCase()), object2ID);
 					// create link between action and object using prep
 //					uncommitedLinks.add(new Link(db, prop2owl.get(prep), currentAction, currentObject2));
 
