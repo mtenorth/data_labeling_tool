@@ -251,7 +251,7 @@ public class OwlActionAboxWriter implements LabelWriter {
 			}
 			File output = new File(main_dir + "/annotations/labels.owl");
 			IRI documentIRI2 = IRI.create(output);
-			manager.saveOntology(ontology, new OWLXMLOntologyFormat(), documentIRI2);
+			manager.saveOntology(ontology, new RDFXMLOntologyFormat(), documentIRI2);
 			manager.saveOntology(ontology, new SystemOutDocumentTarget());
 		}
 		catch (Exception e) 
