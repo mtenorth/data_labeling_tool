@@ -6,7 +6,6 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 
 import org.semanticweb.owlapi.apibinding.OWLManager;
-import org.semanticweb.owlapi.io.OWLXMLOntologyFormat;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.io.SystemOutDocumentTarget;
 import org.semanticweb.owlapi.model.*;
@@ -91,6 +90,30 @@ public class OwlActionAboxWriter implements LabelWriter {
 		id2action = new HashMap<String, Object>();
 		id2object = new HashMap<String, Object>();
 	}
+	
+	String getClassName(String instance)
+	{
+		String className = "";
+		for(int i = 0; i < instance.length(); i++)
+		{
+			boolean isNotNumeric = true;
+			String current = instance.substring(i, i+1);
+			try  
+			{  
+			    double d = Double.parseDouble(current);  
+			}  
+			catch(NumberFormatException nfe)  
+			{  
+			    isNotNumeric = false;  
+			}
+			
+			if(!isNotNumeric)
+				className = className.concat(current);
+			else break;
+		}
+		className = this.class2owl.get(className);
+		return className;
+	}
 
 	@Override
 	public void writeToFile(HashMap<Integer, String> actionLabels,
@@ -125,7 +148,7 @@ public class OwlActionAboxWriter implements LabelWriter {
 				
 				beginningFrame = f + 1;
 			}
-
+			
 			
 		}
 		
@@ -168,7 +191,12 @@ public class OwlActionAboxWriter implements LabelWriter {
 				String object_name1 = "";	
 				String object_name2 = "";	
 				
-				int ind = 0; 
+				int ind = 0;
+				
+				boolean isStatementReversed = false;
+				boolean isClassNameForObject1 = false;
+				boolean isClassNameForObject2 = false;
+				
 				while (tokenizer.hasMoreElements()) 
 				{
 					if(ind == 0)
@@ -180,16 +208,66 @@ public class OwlActionAboxWriter implements LabelWriter {
 						object_name1 = tokenizer.nextToken();
 						
 						individualName1 = this.indiv2owl.get(object_name1.toLowerCase());
+						
+						if(individualName1 == null)
+						{
+							individualName1 = this.class2owl.get(object_name1.toLowerCase());
+							isClassNameForObject1 = true;
+						}
+						if(individualName1 == null)
+						{
+							isClassNameForObject1 = false;
+							isStatementReversed = true;
+							propositionName = this.prop2owl.get(object_name1.toLowerCase());
+						}						
+						
+						
 					}
 					else if (ind == 2)
 					{
-						propositionName = this.prop2owl.get(tokenizer.nextToken().toLowerCase());
+						if(isStatementReversed)
+						{
+							object_name2 = tokenizer.nextToken();
+							
+							individualName2 = this.indiv2owl.get(object_name2.toLowerCase());
+							
+							if(individualName2 == null)
+							{
+								individualName2 = this.class2owl.get(object_name2.toLowerCase());
+								isClassNameForObject2 = true;
+							}
+						}
+						else
+						{
+							propositionName = this.prop2owl.get(tokenizer.nextToken().toLowerCase());
+						}
 					}
 					else if (ind == 3)
 					{	
-						object_name2 = tokenizer.nextToken();
+						if(isStatementReversed)
+						{
+							object_name1 = tokenizer.nextToken();
+							
+							individualName1 = this.indiv2owl.get(object_name1.toLowerCase());
+							if(individualName1 == null)
+							{
+								individualName1 = this.class2owl.get(object_name1.toLowerCase());
+								isClassNameForObject1 = true;
+							}
+							
+						}
+						else
+						{
+							object_name2 = tokenizer.nextToken();
 						
-						individualName2 = this.indiv2owl.get(object_name2.toLowerCase());
+							individualName2 = this.indiv2owl.get(object_name2.toLowerCase());
+							
+							if(individualName2 == null)
+							{
+								individualName2 = this.class2owl.get(object_name2.toLowerCase());
+								isClassNameForObject2 = true;
+							}
+						}
 					} else {
 						// remove a token in any case to avoid infinite loops
 						tokenizer.nextToken();
@@ -219,25 +297,51 @@ public class OwlActionAboxWriter implements LabelWriter {
 				manager.addAxiom(ontology, factory.getOWLObjectPropertyAssertionAxiom(endTime,  action_inst, timestamp2));
 				
 				//Add object info
-				OWLClass object_class = factory.getOWLClass("knowrob:" + individualName1, pm);
-				OWLNamedIndividual object_inst = factory.getOWLNamedIndividual("datalabel:"+ object_name1, pm);
-				manager.addAxiom(ontology, factory.getOWLClassAssertionAxiom(object_class, object_inst));
+				OWLClass object_class = null;
+				OWLNamedIndividual object_inst = null;
+				
+				if(isClassNameForObject1)
+				{
+					object_class = factory.getOWLClass("knowrob:" + individualName1, pm);
+					OWLIndividual object_inst_ind =  OWLIndividual.getOWLIndividualOfClass(individualName1);
+					object_inst = factory.getOWLNamedIndividual("datalabel:" + object_inst_ind.getLabel(), pm);
+					manager.addAxiom(ontology, factory.getOWLClassAssertionAxiom(object_class, object_inst));
+				}
+				else
+				{
+					object_class = factory.getOWLClass("knowrob:" + getClassName(individualName1), pm);
+					object_inst = factory.getOWLNamedIndividual("knowrob:" + individualName1, pm);
+					manager.addAxiom(ontology, factory.getOWLClassAssertionAxiom(object_class, object_inst));
+				}
 					
 				OWLObjectProperty objectActedOn = factory.getOWLObjectProperty("datalabel:objectActedOn", pm);
 				manager.addAxiom(ontology, factory.getOWLObjectPropertyAssertionAxiom(objectActedOn, action_inst, object_inst));
 				
 				//Add proposition info if exists
-				if(object_name2 != null && object_name2 != "")
+				if(object_name2 != null && !(object_name2.equals("")) && !(object_name2.equals("null")) && !(object_name2.equals("None")))
 				{
-					OWLClass object_class2 = factory.getOWLClass("knowrob:" + individualName2, pm);
-					OWLNamedIndividual object_inst2 = factory.getOWLNamedIndividual("datalabel:"+ object_name2, pm);
-					manager.addAxiom(ontology, factory.getOWLClassAssertionAxiom(object_class2, object_inst2));
+					OWLClass object_class2 = null;
+					OWLNamedIndividual object_inst2 = null;
+					
+					if(isClassNameForObject2)
+					{
+						object_class2 = factory.getOWLClass("knowrob:" + individualName2, pm);
+						OWLIndividual object_inst_ind2 =  OWLIndividual.getOWLIndividualOfClass(individualName2);
+						object_inst2 = factory.getOWLNamedIndividual("datalabel:" + object_inst_ind2.getLabel(), pm);
+						manager.addAxiom(ontology, factory.getOWLClassAssertionAxiom(object_class2, object_inst2));
+					}
+					else
+					{
+						object_class2 = factory.getOWLClass("knowrob:" + getClassName(individualName2), pm);
+						object_inst2 = factory.getOWLNamedIndividual("knowrob:" + individualName2, pm);
+						manager.addAxiom(ontology, factory.getOWLClassAssertionAxiom(object_class2, object_inst2));
+					}
 					
 					OWLObjectProperty eventOccursAt = factory.getOWLObjectProperty("knowrob:" + propositionName, pm);
 					manager.addAxiom(ontology, factory.getOWLObjectPropertyAssertionAxiom(eventOccursAt, action_inst, object_inst2));
 				}
 				
-				//Add neighbouring actions if exists
+				//Add neighboring actions if exists
 				if (prev_action_inst != null)
 				{
 					OWLObjectProperty previousAction = factory.getOWLObjectProperty("knowrob:nextEvent", pm);
@@ -259,4 +363,5 @@ public class OwlActionAboxWriter implements LabelWriter {
 			e.printStackTrace();
 		}
 	}	
+	
 }
