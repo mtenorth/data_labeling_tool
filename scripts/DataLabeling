@@ -1,0 +1,10 @@
+#!/bin/bash
+
+SCRIPT_DIR="`dirname "$0"`"
+export BIN_DIR="`(cd "$SCRIPT_DIR"/../bin ; pwd)`"
+export LIB_DIR="`(cd "$SCRIPT_DIR"/../lib ; pwd)`"
+
+CLASSPATH="$BIN_DIR:$LIB_DIR/snakeyaml-1.10.jar:$LIB_DIR/tumutils.jar:$LIB_DIR/log4j-1.2.9.jar:$LIB_DIR/srldb.jar:$LIB_DIR/guava-r09.jar:$LIB_DIR/bnj_res.jar:$LIB_DIR/bnj.jar:$LIB_DIR/gsvideo/gstreamer-java.jar:$LIB_DIR/gsvideo/GSVideo.jar:$LIB_DIR/controlP5.jar:$LIB_DIR/core.jar"
+
+java -ea -Xms40m -Xmx1g -cp "$CLASSPATH" edu.tum.cs.ias.labeling.DataLabeling $@
+
