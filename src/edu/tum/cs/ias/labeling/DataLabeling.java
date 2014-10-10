@@ -28,7 +28,6 @@ import processing.core.PImage;
 import codeanticode.gsvideo.*;
 import edu.tum.cs.ias.labeling.labels.readers.LabelsDatFileReader;
 import edu.tum.cs.ias.labeling.labels.readers.YamlConfigReader;
-import edu.tum.cs.ias.labeling.labels.writers.BlogDbWriter;
 import edu.tum.cs.ias.labeling.labels.writers.LabelWriter;
 import edu.tum.cs.ias.labeling.labels.writers.LabelsDatFileWriter;
 import edu.tum.cs.ias.labeling.labels.writers.OwlActionAboxWriter;
@@ -58,7 +57,7 @@ public class DataLabeling extends PApplet {
 	
 	LinkedHashMap<String, String> label_categories;
 	LinkedHashMap<String, List<String>> label_values;
-	String action_category;
+	YamlConfigReader.Config cfg;
 
 	HashMap<String, Integer>   action2ID = new HashMap<String, Integer>();
 	HashMap<Integer, String>   actionLabels = new HashMap<Integer, String>();
@@ -99,13 +98,13 @@ public class DataLabeling extends PApplet {
 		try {
 			// check if the guessed path was correct and contains a config.yaml
 			if(new File(configPath+"config.yaml").isFile()) {
-				action_category = YamlConfigReader.loadConfigFile(configPath + "config.yaml", label_categories, label_values);
+				cfg = YamlConfigReader.loadConfigFile(configPath + "config.yaml", label_categories, label_values);
 				
 			} else {
 				
 				// ask the user for the config file
 				String configFile = selectConfigFile();
-				action_category = YamlConfigReader.loadConfigFile(configFile, label_categories, label_values);
+				cfg = YamlConfigReader.loadConfigFile(configFile, label_categories, label_values);
 				
 				
 				main_folder = new File(configFile).getParentFile().getParent();
@@ -134,8 +133,8 @@ public class DataLabeling extends PApplet {
 			current_label[i]="";
 		
 		// build inverse lookup table name->id
-		for(int k=0;k<label_values.get(action_category).size();k++) {
-			action2ID.put(label_values.get(action_category).get(k), k);
+		for(int k=0;k<label_values.get(cfg.action_category).size();k++) {
+			action2ID.put(label_values.get(cfg.action_category).get(k), k);
 		}
 		
 		createControlElements(labelPath);
@@ -559,10 +558,10 @@ public class DataLabeling extends PApplet {
 			out = new PerFrameLabelsWriter();
 			out.writeToFile(this.actionLabels, filename, this.startframe, this.endframe);
 
-			out = new BlogDbWriter();
-			out.writeToFile(this.actionLabels, filename, this.startframe, this.endframe);
+			//out = new BlogDbWriter();
+			//out.writeToFile(this.actionLabels, filename, this.startframe, this.endframe);
 			
-			out = new OwlActionAboxWriter();
+			out = new OwlActionAboxWriter(cfg.fps, cfg.startTime);
 			out.writeToFile(this.actionLabels, filename, this.startframe, this.endframe);
 			
 		} catch (FileNotFoundException e) {

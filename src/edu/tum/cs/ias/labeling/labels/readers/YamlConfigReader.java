@@ -22,6 +22,11 @@ import org.yaml.snakeyaml.Yaml;
  *
  */
 public class YamlConfigReader {
+	public static class Config {
+		public String action_category = "";
+		public Double fps = 6.0;
+		public Double startTime = 0.0;
+	}
 
 	/**
 	 * Read the YAML config file containing the sets of label categories
@@ -34,7 +39,7 @@ public class YamlConfigReader {
 	 * @throws FileNotFoundException 
 	 */
 	@SuppressWarnings("unchecked")
-	public static String loadConfigFile(String filename, Map<String, String> label_categories, 
+	public static Config loadConfigFile(String filename, Map<String, String> label_categories, 
 			Map<String, List<String>> label_values) throws FileNotFoundException {
 
 		InputStream input;
@@ -45,9 +50,13 @@ public class YamlConfigReader {
 
 		label_categories.putAll(((Map<String, Map<String, String>>) config).get("label-categories"));
 		label_values.putAll(((Map<String, Map<String, List<String>>>) config).get("label-values"));
-		String action_cat = ((HashMap<String, String>) config).get("action-category");
+		
+		final Config cfg = new Config();
+		cfg.action_category = ((HashMap<String, String>) config).get("action-category");
+		cfg.fps = ((HashMap<String, Double>) config).get("fps");
+		cfg.startTime = ((HashMap<String, Double>) config).get("start-time");
 
-		return action_cat;
+		return cfg;
 
 	}
 
@@ -63,8 +72,8 @@ public class YamlConfigReader {
 		try {
 			Object mapping = (HashMap<String, List<String>>) yaml.load(input);
 			class2owl.putAll(((Map<String, Map<String, String>>) mapping).get("classes"));			
-			indiv2owl.putAll(((Map<String, Map<String, String>>) mapping).get("individuals"));			
 			prop2owl.putAll(((Map<String, Map<String, String>>) mapping).get("properties"));	
+			indiv2owl.putAll(((Map<String, Map<String, String>>) mapping).get("individuals"));		
 		} catch (Exception e) {
 			e.printStackTrace();
 		}		
