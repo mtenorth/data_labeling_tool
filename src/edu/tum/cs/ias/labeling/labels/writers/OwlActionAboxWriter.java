@@ -102,7 +102,7 @@ public class OwlActionAboxWriter implements LabelWriter {
 		final Double elapsedSeconds = frame/framesPerSecond;
 		final DecimalFormat df = new DecimalFormat("#");
 		df.setMaximumFractionDigits(9);
-		return df.format(startTime + elapsedSeconds*1000.0);
+		return df.format(startTime + elapsedSeconds);
 	}
 	
 	String getClassName(String instance) {
